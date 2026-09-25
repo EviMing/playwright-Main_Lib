@@ -33,6 +33,7 @@ from typing import Literal, Any
 from random import uniform
 import traceback
 import sys
+import inspect
 
 #[变量] 指定全局的 timeout(单位=秒)
 global_timeout = 30
@@ -84,7 +85,7 @@ class async_Generated_Context:
     def __init__(self):
         pass
 
-    #[定义方法] 主逻辑
+    #[定义方法] 真 __init__
     async def run(self,
         #[参数] 已有的浏览器实例
         browser:Browser,
@@ -125,7 +126,7 @@ class async_Generated_Browser_MainClass:
     def __init__(self):
         pass
 
-    #[定义方法] 主逻辑
+    #[定义方法] 真 __init__
     async def run(self,
         #[参数] 是否显示浏览器窗口
         look_window=False,
@@ -265,7 +266,7 @@ async def async_get_DOM(
     index:None|Literal['all']|int=None,
     #[参数] 不为 None 时返回数据由 元素本身 变为 元素指定属性名的值 (text只要手动指定)
     get_attribute_name:None|str|Literal['text']=None,
-    *,info=True
+    *,info=True #链式调用标志位
 ) -> (list[Locator]|Locator) | (list[str]|str):
 
     if not isinstance(page_or_locator, (Page, Locator)):
@@ -345,7 +346,7 @@ async def async_click(
     locator:Locator,
     #[参数] 指定要触发的键名, ['left','right','middle']=[左,中,右]
     button:Literal['left','right','middle']='left',
-    #[参数] 坐标偏移量, 以元素中心为起点, 偏移 (x, y) 个坐标, 偏移方向=[(tuple[0]->[± x]=[+右,-左]), [± y]=[+下,-上]]
+    #[参数] 坐标偏移量, 以元素中心为起点, 偏移 (x, y) 个坐标, 偏移方向=[(-左, +右), (-上, +下))
     position:None|tuple[float,float]=None
 ):
     if not isinstance(locator, Locator):
@@ -475,7 +476,7 @@ async def async_eval_pages(
     async def _run(page:Page|Any, func:IsFunction, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]:
         try:
             #判断传入的 func 是否为异步函数
-            if asyncio.iscoroutinefunction(func):
+            if inspect.iscoroutinefunction(func):
                 #异步函数使用 await 执行
                 if kwargs:
                     return (await func(page, **kwargs),)
