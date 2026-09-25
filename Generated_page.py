@@ -2,21 +2,14 @@
 #[伊茗的GitHub仓库] = 'https://github.com/EviMing/'
     #此文件所处项目 = 'https://github.com/EviMing/playwright-Generated_page'
 
-'''多个项目需要同一个文件时：
-import sys
-sys.path.append("../#Generated_page") #目录路径
-from Generated_page import Generated_page #pyright: ignore[reportMissingImports]
-'''
-
-from playwright.sync_api import sync_playwright, Locator, JSHandle
+from playwright.sync_api import sync_playwright, BrowserContext, Locator, JSHandle
 from playwright_stealth import Stealth
 from typing import Literal, Any
 from time import sleep
 
 class Generated_page:
-    '#Literal[\'self\', \'return\', \'close\'] -> (表示事件而非返回值)'
 
-    #[定义属性] 生成安全的上下文实例
+    #[定义实例] 生成安全的上下文实例
     def __init__(self,
         #[参数] 是否从文件获取登录态
         LogIn_state_FilePath:None|str=None,
@@ -26,8 +19,10 @@ class Generated_page:
         browser_path=r"D:\Quark\quark.exe",
         proxy:None|dict[str,str]=None,
         #[参数] 指定全局的 timeout(单位=秒)
-        timeout:int=30
-    ) -> Literal['self']:
+        timeout:int=30,
+        #[参数] 全局每一步行动后应 sleep 的毫秒数
+        sleep_float:float=100
+    ):
 
         #创建全局 timeout 默认值
         self.timeout = timeout
@@ -35,10 +30,10 @@ class Generated_page:
         #代理字典
         proxy_ = {}
         #代理字典不为空时提取键
-        if proxy:
+        if proxy is not None:
             #核心键不存在则报错
             if not proxy.get('proxy'):
-                raise KeyError('proxy[\'proxy\'] 键不存在')
+                raise KeyError('#-> proxy[\'proxy\'] 键不存在')
             #存在则提取核心键
             else:
                 proxy_['server'] = proxy['proxy']
@@ -53,22 +48,22 @@ class Generated_page:
         #启动 Playwright
         p = sync_playwright()
         #启动浏览器内核
-        self.playwright_ = p.start()
+        self.playwright = p.start()
         #创建浏览器实例
-        self.browser = self.playwright_.chromium.launch(
+        self.browser = self.playwright.chromium.launch(
             executable_path=browser_path,
             headless= not look_window,
-            slow_mo=1000,
+            slow_mo=sleep_float,
             proxy= proxy_ if proxy else None
         )
 
-        context = None
         #创建上下文实例
+        self.context :BrowserContext = None
+        #判断是否从文件获取登录态
         if type(LogIn_state_FilePath) == str:
-            #参数 LogIn_from_file == True 时，从文件获取登录态
-            context = self.browser.new_context(storage_state=LogIn_state_FilePath)
+            self.context = self.browser.new_context(storage_state=LogIn_state_FilePath)
         else:
-            context = self.browser.new_context()
+            self.context = self.browser.new_context()
 
         #创建 Stealth 实例
         stealth = Stealth(
@@ -77,39 +72,53 @@ class Generated_page:
             #是否(仅通过初始化脚本注入 stealth 代码，而不使用其他注入方式)
             init_scripts_only=False
         )
-
         #手动装饰上下文实例
-        stealth.apply_stealth_sync(context)
+        stealth.apply_stealth_sync(self.context)
 
         #创建页面实例
-        self.page = context.new_page()
+        self.page = self.context.new_page()
+
+    #[定义属性] 返回当前 page 的 URL
+    @property
+    def url(self) -> None|str:
+        return (x if (x:= self.page.url) else None)
 
     #[定义方法] 跳转页面
     def goto(self,
-        #[参数] 跳转的目标URL
+        #[参数] 跳转的目标 URL
         url,
+        #[参数] 等待什么事件触发时停止跳转行为
+        wait_until:Literal['commit','domcontentloaded','load','networkidle']='domcontentloaded',
+        #[参数] 指定来源 URL, 默认为跳转前的 URL
+        referer:None|str|Literal['page.url']='page.url',
         #[参数] timeout(单位=秒)，默认使用全局 timeout
         timeout:int|Literal['self.timeout']='self.timeout'
-    ) -> Literal['return']:
-        self.page.goto(url, wait_until="domcontentloaded", timeout=int((self.timeout if timeout == 'self.timeout' else timeout)*1000))
+    ):
+        self.page.goto(url, wait_until=wait_until, referer=(self.url if referer == 'page.url' else (referer if type(referer) == str else None)), timeout=int((self.timeout if timeout == 'self.timeout' else timeout)*1000))
 
     #[定义方法] 执行JS代码
     def eval_js(self,
         #[参数] JavaScript 代码
         js_code,
-        #[参数] JavaScript 参数字典 -> dict['参数名', 参数值]
-        parameter:dict={}
+        #[参数] JavaScript 参数字典 | 无参数(None)
+        parameter:None|dict=None
     ) -> Any:
-        return self.page.evaluate(js_code, parameter if parameter != {} else None)
+        if parameter is not None:
+            if type(parameter) != dict:
+                raise ValueError('#-> \'parameter\' 参数值应当是字典')
+        return self.page.evaluate(js_code, parameter)
 
     #[定义方法] 执行JS代码并返回JSHandle对象
     def eval_js_handle(self,
         #[参数] JavaScript 代码
         js_code,
-        #[参数] JavaScript 参数字典 -> dict['参数名', 参数值]
-        parameter:dict={}
+        #[参数] JavaScript 参数字典 | 无参数(None)
+        parameter:None|dict=None
     ) -> JSHandle:
-        return self.page.evaluate_handle(js_code, parameter if parameter != {} else None)
+        if parameter is not None:
+            if type(parameter) != dict:
+                raise ValueError('#-> \'parameter\' 参数值应当是字典')
+        return self.page.evaluate_handle(js_code, parameter)
 
     #[定义函数] 等待元素出现
     def waiting_DOM(self,
@@ -119,7 +128,9 @@ class Generated_page:
         min_number:int=1,
         #[参数] timeout(单位=秒), 默认使用全局 timeout
         timeout:int|Literal['self.timeout']='self.timeout'
-    ) -> Literal['return']:
+    ):
+        if min_number < 1:
+            raise ValueError('#-> \'min_number\' 参数值不应小于1')
         self.page.locator(selector, has_text=text, has_not_text=not_text).nth(min_number-1).wait_for(timeout=int((self.timeout if timeout == 'self.timeout' else timeout)*1000))
 
     #[定义方法] 利用CSS选择器获取 DOM元素 或 元素的属性值
@@ -164,12 +175,12 @@ class Generated_page:
         index:None|int=None,
         #[参数] 指定要触发的键名, ['left','right','middle']=[左,中,右]
         key:Literal['left','right','middle']='left'
-    ) -> Literal['return']:
+    ):
 
         DOM :Locator = None
         if type(index) == int:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text).nth(index)
-        elif index in None:
+        elif index is None:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text)
         else:
             raise ValueError('#-> \'index\' 参数值错误')
@@ -191,7 +202,7 @@ class Generated_page:
         DOM :Locator = None
         if type(index) == int:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text).nth(index)
-        elif index in None:
+        elif index is None:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text)
         else:
             raise ValueError('#-> \'index\' 参数值错误')
@@ -204,13 +215,13 @@ class Generated_page:
     def mouse_down(self,
         #[参数] 指定要按下的键名, ['left','right','middle']=[左,中,右]
         button:Literal['left','right','middle']='left'
-    ) -> Literal['return']:
+    ):
         self.page.mouse.down(button=button)
     #[定义方法] 抬起单个鼠标按键
     def mouse_up(self,
         #[参数] 指定要按下的键名, ['left','right','middle']=[左,中,右]
         button:Literal['left','right','middle']='left'
-    ) -> Literal['return']:
+    ):
         self.page.mouse.up(button=button)
     #[定义方法] 鼠标平面移动
     def mouse_move(self,
@@ -218,7 +229,7 @@ class Generated_page:
         x, y,
         #[参数] 移动步数, 值越大移动越慢, (1 为瞬间移动), (None 为 playwright 自己判断移动)
         steps:None|int=None
-    ) -> Literal['return']:
+    ):
         self.page.mouse.move(x, y, steps=steps)
     #[定义方法] 模拟鼠标滚轮上下滚动
     def mouse_wheel(self,
@@ -226,36 +237,38 @@ class Generated_page:
         delta_x=0,
         #[参数] 横向滚动的像素距离, [正,负]=[下,上]
         delta_y=500
-    ) -> Literal['return']:
+    ):
         self.page.mouse.wheel(delta_x, delta_y)
 
     #[定义方法] 按下单个键盘按键
     def key_down(self,
         #[参数] 指定按下的键名
         key:str
-    ) -> Literal['return']:
+    ):
         self.page.keyboard.press(key)
     #[定义方法] 抬起单个键盘按键
     def key_up(self,
         #[参数] 指定抬起的键名
         key:str
-    ) -> Literal['return']:
+    ):
         self.page.keyboard.up(key)
+
+    #[定义属性] 返回页面 HTML 源代码
+    @property
+    def html(self) -> None|str:
+        return (x if (x:= self.page.content()) else None)
 
     #[定义方法] 保存登录态为 JSON 文件
     def save_LogIn_state(self,
         #[参数] 指定文件的写入路径
         file_path:str
-    ) -> Literal['return']:
+    ):
         self.page.context.storage_state(path=file_path)
 
-    #[定义方法] 返回页面HTML源代码
-    def html(self) -> str:
-        return self.page.content()
-
     #[定义方法] 关闭实例
-    def close(self) -> Literal['close']:
+    def close(self):
         for page in self.browser.contexts:
             page.close()
+        self.context.close()
         self.browser.close()
-        self.playwright_.stop()
+        self.playwright.stop()
