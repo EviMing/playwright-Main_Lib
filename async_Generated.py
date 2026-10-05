@@ -33,7 +33,6 @@ from typing import Literal, Any
 from random import uniform
 import traceback
 import sys
-import inspect
 
 #[变量] 指定全局的 timeout(单位=秒)
 global_timeout = 30
@@ -42,9 +41,9 @@ global_timeout = 30
 key_map = {
 
     #常用修饰键
-    "Ctrl": "Control",
-    "Cmd": "Meta",
     "Win": "Meta",
+    "Cmd": "Meta",
+    "Ctrl": "Control",
     "Opt": "Alt",
 
     #方向键
@@ -66,7 +65,8 @@ key_map = {
     "Bksp": "Backspace",
 
     #空格
-    "Space": " ",
+    "Space": "Space",
+    "Tab": "Tab"
 
 }
 
@@ -266,7 +266,7 @@ async def async_get_DOM(
     index:None|Literal['all']|int=None,
     #[参数] 不为 None 时返回数据由 元素本身 变为 元素指定属性名的值 (text只要手动指定)
     get_attribute_name:None|str|Literal['text']=None,
-    *,info=True #链式调用标志位
+    *,info=True
 ) -> (list[Locator]|Locator) | (list[str]|str):
 
     if not isinstance(page_or_locator, (Page, Locator)):
@@ -346,7 +346,7 @@ async def async_click(
     locator:Locator,
     #[参数] 指定要触发的键名, ['left','right','middle']=[左,中,右]
     button:Literal['left','right','middle']='left',
-    #[参数] 坐标偏移量, 以元素中心为起点, 偏移 (x, y) 个坐标, 偏移方向=[(-左, +右), (-上, +下))
+    #[参数] 坐标偏移量, 以元素中心为起点, 偏移 (x, y) 个坐标, 偏移方向=[(tuple[0]->[± x]=[+右,-左]), [± y]=[+下,-上]]
     position:None|tuple[float,float]=None
 ):
     if not isinstance(locator, Locator):
@@ -393,7 +393,7 @@ async def async_mouse_wheel(
         raise TypeError('#-> 参数 \'page\' 类型错误, 应当是 \'playwright-Page\'')
     await page.mouse.wheel(*wheel_px_tuple)
 
-#[定义函数] 按下单个键盘按键
+#[定义函数] 按下键盘按键
 async def async_key_down(
     page:Page,
     #[参数] 指定抬起的键名, 允许'+'符拼接为组合键
@@ -404,7 +404,7 @@ async def async_key_down(
 
     #多键时不应当瞬间按下
     if '+' in key:
-        keys = key.split('+')
+        keys = [i.strip() for i in key.split('+')]
         for k in keys:
             if k in key_map.keys():
                 await page.keyboard.down(key_map[k])
@@ -419,7 +419,7 @@ async def async_key_down(
             await page.keyboard.down(key_map[key])
         else:
             await page.keyboard.down(key)
-#[定义函数] 抬起单个键盘按键
+#[定义函数] 抬起键盘按键
 async def async_key_up(
     page:Page,
     #[参数] 指定抬起的键名, 允许'+'符拼接为组合键
@@ -429,7 +429,7 @@ async def async_key_up(
         raise TypeError('#-> 参数 \'page\' 类型错误, 应当是 playwright-Page')
 
     if '+' in key:
-        keys = key.split('+')
+        keys = [i.strip() for i in key.split('+')]
         for k in keys:
             if k in key_map.keys():
                 await page.keyboard.up(key_map[k])
@@ -476,7 +476,7 @@ async def async_eval_pages(
     async def _run(page:Page|Any, func:IsFunction, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]:
         try:
             #判断传入的 func 是否为异步函数
-            if inspect.iscoroutinefunction(func):
+            if asyncio.iscoroutinefunction(func):
                 #异步函数使用 await 执行
                 if kwargs:
                     return (await func(page, **kwargs),)
