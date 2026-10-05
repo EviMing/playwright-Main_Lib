@@ -66,6 +66,8 @@ key_map = {
 
     #空格
     "Space": "Space",
+
+    #制表符或缩进
     "Tab": "Tab"
 
 }
