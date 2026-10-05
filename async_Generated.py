@@ -40,35 +40,35 @@ global_timeout = 30
 #[变量] 键盘按键名的缩写->映射为键名全称
 key_map = {
 
-    #常用修饰键
-    "Win": "Meta",
-    "Cmd": "Meta",
-    "Ctrl": "Control",
-    "Opt": "Alt",
+    #修饰键
+    'Win': 'Meta',
+    'Cmd': 'Meta',
+    'Ctrl': 'Control',
+    'Opt': 'Alt',
 
     #方向键
-    "Up": "ArrowUp",
-    "Down": "ArrowDown",
-    "Left": "ArrowLeft",
-    "Right": "ArrowRight",
+    'Up': 'ArrowUp',
+    'Down': 'ArrowDown',
+    'Left': 'ArrowLeft',
+    'Right': 'ArrowRight',
 
     #功能键
-    "Esc": "Escape",
-    "Ins": "Insert",
-    "Del": "Delete",
-    "PgUp": "PageUp",
-    "PgDn": "PageDown",
+    'Esc': 'Escape',
+    'Ins': 'Insert',
+    'Del': 'Delete',
+    'PgUp': 'PageUp',
+    'PgDn': 'PageDown',
 
     #回车与退格
-    "Enter": "Enter",
-    "Return": "Enter",
-    "Bksp": "Backspace",
+    'Enter': 'Enter',
+    'Return': 'Enter',
+    'Bksp': 'Backspace',
 
     #空格
-    "Space": "Space",
+    'Space': 'Space',
 
     #制表符或缩进
-    "Tab": "Tab"
+    'Tab': 'Tab'
 
 }
 
