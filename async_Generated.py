@@ -516,5 +516,5 @@ def eval_pages(
 :input `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(Page对象 | 自定义参数),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`可调用函数(第一个位置参数由 \'eval_pages\' 方法固定传参为 input 的 \'(page对象 | 自定义参数)\'),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`dict['参数名', 参数值]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n`]`\n\n
 :output `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[done] tuple[执行结果,]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[error] tuple[type[IsError], tuple[type[报错类本身], 报错字符串, 报错链字符串]]`\n\n`]`
     '''
-    #直接使用 asyncio.run() 运行异步评估函数 (run 函数会自动处理事件循环的创建和销毁)
+    #直接使用 asyncio.run() 直接运行携程函数
     return asyncio.run(async_eval_pages(run_list))
