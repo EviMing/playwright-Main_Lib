@@ -29,6 +29,7 @@ from playwright.async_api import (
 )
 from playwright_stealth import Stealth
 import asyncio
+import inspect
 from typing import Literal, Any
 from random import uniform
 import traceback
@@ -478,7 +479,7 @@ async def async_eval_pages(
     async def _run(page:Page|Any, func:IsFunction, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]:
         try:
             #判断传入的 func 是否为异步函数
-            if asyncio.iscoroutinefunction(func):
+            if inspect.iscoroutinefunction(func):
                 #异步函数使用 await 执行
                 if kwargs:
                     return (await func(page, **kwargs),)
@@ -500,7 +501,7 @@ async def async_eval_pages(
             #打印报错并返回报错字典
             return (IsError, (error_class, str(error_str), traceback.format_exc()))
     #构建并发任务列表
-    tasks = [ 
+    tasks = [
         (_run(page, func, run_data) if run_data else _run(page, func))
         for (page, (func, run_data)) in run_list
     ]
