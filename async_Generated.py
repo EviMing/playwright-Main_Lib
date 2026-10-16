@@ -231,7 +231,7 @@ async def goto(
 ):
     if not isinstance(page, Page):
         raise TypeError('#-> 参数 \'page\' 类型错误, 应当是 playwright-Page')
-    await page.goto(url, wait_until=wait_until, referer=(get_url(page) if referer == 'page.url' else (referer if isinstance(referer, str) else None)), timeout=int((global_timeout if timeout == 'global_timeout' else timeout)*1000))
+    await page.goto(url, wait_until=wait_until, referer=(get_url(page) if referer == 'page.url' else (referer if isinstance(referer, str) else None)), timeout=((global_timeout if timeout == 'global_timeout' else timeout)*1000))
 
 #[定义函数] 执行JS代码
 async def eval_js(
@@ -331,8 +331,9 @@ async def waiting_DOM(
         raise TypeError('#-> 参数 \'Locator\' 类型错误, 应当为 \'playwright-Locator\'')
     if min_number < 1:
         raise ValueError('#-> 参数 \'min_number\' 值不应小于1')
+
     try:
-        await locator.nth(min_number-1).wait_for(timeout=int((global_timeout if timeout == 'global_timeout' else timeout)*1000))
+        await locator.nth(min_number-1).wait_for(timeout=((global_timeout if timeout == 'global_timeout' else timeout)*1000))
     except pl_TimeoutError as e:
         raise TimeoutError('#-> 函数 \'waiting_DOM\' 等待标签出现超时') from e
 
