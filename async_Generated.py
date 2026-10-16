@@ -4,21 +4,22 @@
 
 (
 """
-链式操作 = `await (await (await (async_Generated_Browser_MainClass()).run(**参数)).get_Context(**参数)).get_Page()`\n\n
+链式操作 = `page = await (await (await (MainClass_Generated_Browser()).run(**参数)).get_Context(**参数)).get_Page()`\n\n
 非链式操作 = \n\n
 ```
-    browser = await (async_Generated_Browser_MainClass()).run(**参数)
+    browser = await (MainClass_Generated_Browser()).run(**参数)
     context = await browser.get_Context(**参数)
     page = await context.get_Page()
 ```
 
 [运行方法们]
     第一个参数必须是一个异步 page 对象, 会使用 await 运行,
+        #[but] 你也可以自己定义一个方法, 第一个参数可以不为 page 对象, 而是任意值, 传参时传入自己的参数, 只要是携程函数都会正常以携程方式运行
     标有特殊注释的函数本身就可以直接将自己的输出作为自己的输入,
         即: 第一个参数可以是由自己输出的返回值, 作用对象也会从 page 对象 变为 传参对象本身
         特殊注释=形参(info=True)
 
-[eval_pages 方法们]
+[eval_pages 方法]
     直接异步运行大量 page 操作
 """
 )
@@ -74,15 +75,15 @@ key_map = {
 }
 
 #[定义标识类] 用于类型注释时表示对象应为一个可调用函数或方法
-class IsFunction:
+class is_Function:
     pass
 
 #[定义标识类] 函数运行时有报错被拦截则返回此类, 用于判断是否存在报错
-class IsError(Exception):
+class is_Error_Class(Exception):
     pass
 
 #[定义接口类] 让主类有更方便的生成上下文方法, 并提供更生成异步 page 的方法
-class async_Generated_Context:
+class Generated_Context:
 
     #[定义属性] 无
     def __init__(self):
@@ -119,11 +120,11 @@ class async_Generated_Context:
     #[定义方法] 返回一个异步 page 对象
     async def get_Page(self,
     ) -> Page:
-        '每个异步 page 允许 \'await 函数(page对象, 参数)\' 或 \'await page对象.原生方法\' 直接运行, 或使用库提供的 \'`(async_){0,1}eval_pages`\' 方法批量运行'
+        '每个异步 page 允许 \'await 函数(page对象, 参数)\' 或 \'await page对象.原生方法\' 直接运行, 或使用库提供的 \'`eval_pages`\' 方法批量运行'
         return await self.context.new_page()
 
 #[定义类] 生成安全的浏览器实例并调用接口类达到链式操作
-class async_Generated_Browser_MainClass:
+class MainClass_Generated_Browser:
 
     #[定义属性] 无
     def __init__(self):
@@ -176,8 +177,8 @@ class async_Generated_Browser_MainClass:
     async def get_Context(self,
         #[参数] 是否从文件获取登录态
         LogIn_state_FilePath:None|str=None
-    ) -> async_Generated_Context:
-        return await (async_Generated_Context()).run(self.browser, LogIn_state_FilePath)
+    ) -> Generated_Context:
+        return await (Generated_Context()).run(self.browser, LogIn_state_FilePath)
 
     #[定义方法] 关闭实例
     async def close(self):
@@ -211,7 +212,7 @@ def get_url(
     return (x if (x:= page.url) else None)
 
 #[定义函数] 跳转页面
-async def async_goto(
+async def goto(
     #[参数] 作用的 Page 对象
     page:Page,
     #[参数] 跳转的目标 URL
@@ -228,7 +229,7 @@ async def async_goto(
     await page.goto(url, wait_until=wait_until, referer=(get_url(page) if referer == 'page.url' else (referer if isinstance(referer, str) else None)), timeout=int((global_timeout if timeout == 'global_timeout' else timeout)*1000))
 
 #[定义函数] 执行JS代码
-async def async_eval_js(
+async def eval_js(
     #[参数] 作用的 Page 对象
     page:Page,
     #[参数] JavaScript 代码
@@ -244,7 +245,7 @@ async def async_eval_js(
     return await page.evaluate(js_code, parameter)
 
 #[定义函数] 执行JS代码并返回JSHandle对象
-async def async_eval_js_handle(
+async def eval_js_handle(
     #[参数] 作用的 Page 对象
     page:Page,
     #[参数] JavaScript 代码
@@ -260,7 +261,7 @@ async def async_eval_js_handle(
     return await page.evaluate_handle(js_code, parameter)
 
 #[定义函数] 利用CSS选择器获取 (Locator 对象(建立搜索规则)) 或 元素的属性值
-async def async_get_DOM(
+async def get_DOM(
     #[参数] 作用的 Page 对象, 或直接进行操作的 Locator 对象
     page_or_locator:Page|Locator,
     #[参数] selector=选择器 (page 为 Page 实例时提供), text=元素文本, not_text=元素不允许存在的文本
@@ -313,7 +314,7 @@ async def async_get_DOM(
         return list_or_locator
 
 #[定义函数] 等待元素出现
-async def async_waiting_DOM(
+async def waiting_DOM(
     #[参数] 作用的 Locator 对象
     locator:Locator,
     #[参数] 元素存在的最小个数
@@ -331,7 +332,7 @@ async def async_waiting_DOM(
         raise TimeoutError('#-> 函数 \'waiting_DOM\' 等待标签出现超时') from e
 
 #[定义函数] 获取元素坐标
-async def async_get_DOM_coordinate(
+async def get_DOM_coordinate(
     #[参数] 被作用的 Locator 对象
     locator:Locator
 ) -> tuple[float, float]:
@@ -344,7 +345,7 @@ async def async_get_DOM_coordinate(
     return (x, y)
 
 #[定义函数] 点击元素
-async def async_click(
+async def click_DOM(
     #[参数] 被作用的 Locator 对象
     locator:Locator,
     #[参数] 指定要触发的键名, ['left','right','middle']=[左,中,右]
@@ -358,7 +359,7 @@ async def async_click(
     await locator.click(button=button, delay=uniform(0.080, 0.120), force=True, position=({'x': position[0], 'y': position[1]} if isinstance(position, tuple) else None))
 
 #[定义函数] 按下单个鼠标按键
-async def async_mouse_down(
+async def mouse_down(
     page:Page,
     #[参数] 指定要按下的键名, ['left','right','middle']=[左,中,右]
     button:Literal['left','right','middle']='left'
@@ -367,7 +368,7 @@ async def async_mouse_down(
         raise TypeError('#-> \'page\' 参数类型错误, 应当为 \'playwright-Page\'')
     await page.mouse.down(button=button)
 #[定义函数] 抬起单个鼠标按键
-async def async_mouse_up(
+async def mouse_up(
     page:Page,
     #[参数] 指定要按下的键名, ['left','right','middle']=[左,中,右]
     button:Literal['left','right','middle']='left'
@@ -376,7 +377,7 @@ async def async_mouse_up(
         raise TypeError('#-> \'page\' 参数类型错误, 应当为 \'playwright-Page\'')
     await page.mouse.up(button=button)
 #[定义函数] 鼠标平面移动
-async def async_mouse_move(
+async def mouse_move(
     page:Page,
     #[参数] x,y=屏幕坐标(像素值:float)
     px_tuple:tuple[float,float],
@@ -387,7 +388,7 @@ async def async_mouse_move(
         raise TypeError('#-> 参数 \'page\' 类型错误, 应当是 \'playwright-Page\'')
     await page.mouse.move(*px_tuple, steps=steps)
 #[定义函数] 鼠标滚轮上下滚动
-async def async_mouse_wheel(
+async def mouse_wheel(
     page:Page,
     #[参数] 滚动方向=[(tuple[0]->[± x]=[+右,-左]), [± y]=[+下,-上]]
     wheel_px_tuple:tuple[float,float]=(0,500)
@@ -397,7 +398,7 @@ async def async_mouse_wheel(
     await page.mouse.wheel(*wheel_px_tuple)
 
 #[定义函数] 按下键盘按键
-async def async_key_down(
+async def key_down(
     page:Page,
     #[参数] 指定抬起的键名, 允许'+'符拼接为组合键
     key:str
@@ -423,7 +424,7 @@ async def async_key_down(
         else:
             await page.keyboard.down(key)
 #[定义函数] 抬起键盘按键
-async def async_key_up(
+async def key_up(
     page:Page,
     #[参数] 指定抬起的键名, 允许'+'符拼接为组合键
     key:str
@@ -448,7 +449,7 @@ async def async_key_up(
             await page.keyboard.up(key)
 
 #[定义函数] 返回页面 HTML 源代码
-async def async_get_html(
+async def get_page_html(
     page:Page
 ) -> str:
     if not isinstance(page, Page):
@@ -456,27 +457,31 @@ async def async_get_html(
     return await page.content()
 
 #[定义函数] 保存登录态为 JSON 文件
-async def async_save_LogIn_state(
-    page:Page,
+async def save_LogIn_state(
+    context: (Generated_Context | BrowserContext),
     #[参数] 指定文件的写入路径
     file_path:str
 ):
-    if not isinstance(page, Page):
-        raise TypeError('#-> 参数 \'page\' 类型错误, 应当是 playwright-Page')
-    await page.context.storage_state(path=file_path)
+    if not isinstance(context, (Generated_Context, BrowserContext)):
+        raise TypeError('#-> 参数 \'context\' 类型错误, 应当是 (Lib-\'async_Generated.Generated_Context\' | playwright-BrowserContext)')
+
+    if isinstance(context, Generated_Context):
+        await context.context.storage_state(path=file_path)
+    elif isinstance(context, BrowserContext):
+        await context.storage_state(path=file_path)
 
 """[定义函数] 异步运行大量 page 操作"""
 #[定义函数] 异步运行多个 page 操作
-async def async_eval_pages(
+async def eval_pages(
     #[参数] 存储任务元组的列表 -> [(page对象|自定义参数, (调用对象, {'参数名': 参数值,} | None(无参数))),]
-    run_list: list[tuple[Page|Any, tuple[IsFunction, dict[str,Any]|None]]]
-) -> list[tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]]:
+    run_list: list[tuple[Page|Any, tuple[is_Function, dict[str,Any]|None]]]
+) -> list[tuple[Any,] | tuple[type[is_Error_Class], tuple[type, str, str]]]:
     '''
 :input `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(Page对象 | 自定义参数),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`可调用函数(第一个位置参数由 \'eval_pages\' 方法固定传参为 input 的 \'(page对象 | 自定义参数)\'),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`dict['参数名', 参数值]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n`]`\n\n
 :output `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[done] tuple[执行结果,]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[error] tuple[type[IsError], tuple[type[报错类本身], 报错字符串, 报错链字符串]]`\n\n`]`
     '''
     #包装单个任务
-    async def _run(page:Page|Any, func:IsFunction, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]:
+    async def _run(page:Page|Any, func:is_Function, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[is_Error_Class], tuple[type, str, str]]:
         try:
             #判断传入的 func 是否为异步函数
             if inspect.iscoroutinefunction(func):
@@ -499,7 +504,7 @@ async def async_eval_pages(
         except:
             error_class, error_str, all_error = sys.exc_info()
             #打印报错并返回报错字典
-            return (IsError, (error_class, str(error_str), traceback.format_exc()))
+            return (is_Error_Class, (error_class, str(error_str), traceback.format_exc()))
     #构建并发任务列表
     tasks = [
         (_run(page, func, run_data) if run_data else _run(page, func))
@@ -507,14 +512,3 @@ async def async_eval_pages(
     ]
     #并发调度所有任务并返回结果
     return await asyncio.gather(*tasks)
-#[定义函数] 同步模式下直接运行 async_eval_pages 方法
-def eval_pages(
-    #[参数] 存储任务元组的列表 -> [(page对象|自定义参数, (调用对象, (None(无参数)|{'参数名': 参数值,}))),]
-    run_list: list[tuple[Page|Any, tuple[IsFunction, dict[str,Any]|None]]]
-) -> list[tuple[Any,] | tuple[type[IsError], tuple[type, str, str]]]:
-    '''
-:input `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(Page对象 | 自定义参数),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`可调用函数(第一个位置参数由 \'eval_pages\' 方法固定传参为 input 的 \'(page对象 | 自定义参数)\'),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`dict['参数名', 参数值]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n`]`\n\n
-:output `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[done] tuple[执行结果,]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[error] tuple[type[IsError], tuple[type[报错类本身], 报错字符串, 报错链字符串]]`\n\n`]`
-    '''
-    #直接使用 asyncio.run() 直接运行携程函数
-    return asyncio.run(async_eval_pages(run_list))
