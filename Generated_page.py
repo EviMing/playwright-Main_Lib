@@ -33,7 +33,7 @@ class Generated_page:
         if proxy is not None:
             #核心键不存在则报错
             if not proxy.get('proxy'):
-                raise KeyError('#-> proxy[\'proxy\'] 键不存在')
+                raise KeyError('[Lib-Error] proxy[\'proxy\'] 键不存在')
             #存在则提取核心键
             else:
                 proxy_['server'] = proxy['proxy']
@@ -105,7 +105,7 @@ class Generated_page:
     ) -> Any:
         if parameter is not None:
             if type(parameter) != dict:
-                raise ValueError('#-> \'parameter\' 参数值应当是字典')
+                raise ValueError('[Lib-Error] \'parameter\' 参数值应当是字典')
         return self.page.evaluate(js_code, parameter)
 
     #[定义方法] 执行JS代码并返回JSHandle对象
@@ -117,7 +117,7 @@ class Generated_page:
     ) -> JSHandle:
         if parameter is not None:
             if type(parameter) != dict:
-                raise ValueError('#-> \'parameter\' 参数值应当是字典')
+                raise ValueError('[Lib-Error] \'parameter\' 参数值应当是字典')
         return self.page.evaluate_handle(js_code, parameter)
 
     #[定义函数] 等待元素出现
@@ -130,7 +130,7 @@ class Generated_page:
         timeout:int|Literal['self.timeout']='self.timeout'
     ):
         if min_number < 1:
-            raise ValueError('#-> \'min_number\' 参数值不应小于1')
+            raise ValueError('[Lib-Error] \'min_number\' 参数值不应小于1')
         self.page.locator(selector, has_text=text, has_not_text=not_text).nth(min_number-1).wait_for(timeout=int((self.timeout if timeout == 'self.timeout' else timeout)*1000))
 
     #[定义方法] 利用CSS选择器获取 DOM元素 或 元素的属性值
@@ -151,7 +151,7 @@ class Generated_page:
         elif index == 'all':
             list_or_locator = self.page.locator(selector, has_text=text, has_not_text=not_text).all()
         else:
-            raise ValueError('#-> \'index\' 参数值错误')
+            raise ValueError('[Lib-Error] \'index\' 参数值错误')
 
         #已知属性名时返回属性值
         if type(get_attribute_name) == str:
@@ -183,7 +183,7 @@ class Generated_page:
         elif index is None:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text)
         else:
-            raise ValueError('#-> \'index\' 参数值错误')
+            raise ValueError('[Lib-Error] \'index\' 参数值错误')
 
         #手动移动到元素中心点击，防止出现遮罩阻挡点击事件
         DOM.hover()
@@ -205,7 +205,7 @@ class Generated_page:
         elif index is None:
             DOM = self.page.locator(selector, has_text=text, has_not_text=not_text)
         else:
-            raise ValueError('#-> \'index\' 参数值错误')
+            raise ValueError('[Lib-Error] \'index\' 参数值错误')
         box = DOM.bounding_box()
         x = float(box['x'] + box['width'] / 2)
         y = float(box['y'] + box['height'] / 2)
