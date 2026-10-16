@@ -80,11 +80,11 @@ key_map = {
 }
 
 #[定义标识类] 用于类型注释时表示对象应为一个可调用函数或方法
-class is_Function:
+class is_function:
     pass
 
 #[定义标识类] 函数运行时有报错被拦截则返回此类, 用于判断是否存在报错
-class is_Error_Class(Exception):
+class is_Error_class(Exception):
     pass
 
 #[定义接口类] 让主类有更方便的生成上下文方法, 并提供更生成异步 page 的方法
@@ -479,14 +479,14 @@ async def save_LogIn_state(
 #[定义函数] 异步运行多个 page 操作
 async def eval_pages(
     #[参数] 存储任务元组的列表 -> [(page对象|自定义参数, (调用对象, {'参数名': 参数值,} | None(无参数))),]
-    run_list: list[tuple[Page|Any, tuple[is_Function, dict[str,Any]|None]]]
-) -> list[tuple[Any,] | tuple[type[is_Error_Class], tuple[type, str, str]]]:
+    run_list: list[tuple[Page|Any, tuple[is_function, dict[str,Any]|None]]]
+) -> list[tuple[Any,] | tuple[type[is_Error_class], tuple[type, str, str]]]:
     '''
 :input `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`(Page对象 | 自定义参数),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`tuple[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`可调用函数(第一个位置参数由 \'eval_pages\' 方法固定传参为 input 的 \'(page对象 | 自定义参数)\'),`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`dict['参数名', 参数值]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`]`\n\n`]`\n\n
 :output `list[`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[done] tuple[执行结果,]`\n\n&nbsp;&nbsp;&nbsp;&nbsp;`[error] tuple[type[IsError], tuple[type[报错类本身], 报错字符串, 报错链字符串]]`\n\n`]`
     '''
     #包装单个任务
-    async def _run(page:Page|Any, func:is_Function, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[is_Error_Class], tuple[type, str, str]]:
+    async def _run(page:Page|Any, func:is_function, kwargs:None|dict[str, Any]) -> tuple[Any,] | tuple[type[is_Error_class], tuple[type, str, str]]:
         try:
             #判断传入的 func 是否为异步函数
             if inspect.iscoroutinefunction(func):
@@ -509,7 +509,7 @@ async def eval_pages(
         except:
             error_class, error_str, all_error = sys.exc_info()
             #打印报错并返回报错字典
-            return (is_Error_Class, (error_class, str(error_str), traceback.format_exc()))
+            return (is_Error_class, (error_class, str(error_str), traceback.format_exc()))
     #构建并发任务列表
     tasks = [
         (_run(page, func, run_data) if run_data else _run(page, func))
