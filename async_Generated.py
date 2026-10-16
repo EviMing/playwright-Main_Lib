@@ -88,7 +88,7 @@ class is_Error_class(Exception):
     pass
 
 #[定义接口类] 让主类有更方便的生成上下文方法, 并提供更生成异步 page 的方法
-class Generated_Context:
+class async_Generated_Context:
 
     #[定义属性] 无
     def __init__(self):
@@ -182,8 +182,8 @@ class MainClass_async_Generated_Browser:
     async def get_Context(self,
         #[参数] 是否从文件获取登录态
         LogIn_state_FilePath:None|str=None
-    ) -> Generated_Context:
-        return await (Generated_Context()).run(self.browser, LogIn_state_FilePath)
+    ) -> async_Generated_Context:
+        return await (async_Generated_Context()).run(self.browser, LogIn_state_FilePath)
 
     #[定义方法] 关闭实例
     async def close(self):
@@ -221,7 +221,7 @@ async def goto(
     #[参数] 作用的 Page 对象
     page:Page,
     #[参数] 跳转的目标 URL
-    url,
+    url:str,
     #[参数] 等待什么事件触发时停止跳转行为
     wait_until:Literal['commit','domcontentloaded','load','networkidle']='domcontentloaded',
     #[参数] 指定来源 URL, 默认为跳转前的 URL
@@ -464,14 +464,14 @@ async def get_page_html(
 
 #[定义函数] 保存登录态为 JSON 文件
 async def save_LogIn_state(
-    context: (Generated_Context | BrowserContext),
+    context: (async_Generated_Context | BrowserContext),
     #[参数] 指定文件的写入路径
     file_path:str
 ):
-    if not isinstance(context, (Generated_Context, BrowserContext)):
+    if not isinstance(context, (async_Generated_Context, BrowserContext)):
         raise TypeError('#-> 参数 \'context\' 类型错误, 应当是 (Lib-\'async_Generated.Generated_Context\' | playwright-BrowserContext)')
 
-    if isinstance(context, Generated_Context):
+    if isinstance(context, async_Generated_Context):
         await context.context.storage_state(path=file_path)
     elif isinstance(context, BrowserContext):
         await context.storage_state(path=file_path)
