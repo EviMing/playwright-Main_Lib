@@ -4,10 +4,10 @@
 
 (
 """
-链式操作 = `page = await (await (await (MainClass_Generated_Browser()).run(**参数)).get_Context(**参数)).get_Page()`\n\n
+链式操作 = `page = await (await (await (MainClass_async_Generated_Browser()).run(**参数)).get_Context(**参数)).get_Page()`\n\n
 非链式操作 = \n\n
 ```
-    browser = await (MainClass_Generated_Browser()).run(**参数)
+    browser = await (MainClass_async_Generated_Browser()).run(**参数)
     context = await browser.get_Context(**参数)
     page = await context.get_Page()
 ```
@@ -129,7 +129,7 @@ class Generated_Context:
         return await self.context.new_page()
 
 #[定义类] 生成安全的浏览器实例并调用接口类达到链式操作
-class MainClass_Generated_Browser:
+class MainClass_async_Generated_Browser:
 
     #[定义属性] 无
     def __init__(self):
